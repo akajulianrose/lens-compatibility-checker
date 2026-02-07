@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lens Compatibility Checker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #ffffff 0%, #e8e8ed 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: background 0.4s ease;
+    }
+
+    /* Dark mode toggle */
+    .theme-toggle {
+      width: 52px;
+      height: 28px;
+      margin: 16px auto 0;
+      display: flex;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .theme-toggle .toggle-knob {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: transform 0.3s ease, background 0.3s;
+      transform: translateX(0);
+    }
+
+    body.dark .theme-toggle {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark .theme-toggle .toggle-knob {
+      transform: translateX(24px);
+      background: #636366;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    /* Dark mode overrides */
+    body.dark {
+      background: linear-gradient(180deg, #1c1c1e 0%, #0e0e10 100%);
+    }
+
+    body.dark h1 {
+      color: #f5f5f7;
+    }
+
+    body.dark .subtitle {
+      color: #8e8e93;
+    }
+
+    body.dark .card {
+      background: rgba(44, 44, 46, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark .mount-group label {
+      color: #8e8e93;
+    }
+
+    body.dark .mount-group select {
+      color: #f5f5f7;
+      background-color: rgba(58, 58, 60, 0.6);
+      border-color: rgba(255, 255, 255, 0.1);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238e8e93' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+    }
+
+    body.dark .mount-group select:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark .mount-group select option {
+      background: #2c2c2e;
+      color: #f5f5f7;
+    }
+
+    body.dark .status-label {
+      color: #f5f5f7;
+    }
+
+    body.dark .details {
+      background: rgba(58, 58, 60, 0.4);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    body.dark .details p {
+      color: #c7c7cc;
+    }
+
+    body.dark .details .detail-label {
+      color: #f5f5f7;
+    }
+
+    body.dark .swap-btn {
+      color: #8e8e93;
+      background: rgba(58, 58, 60, 0.5);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark .swap-btn:hover {
+      background: rgba(68, 68, 70, 0.7);
+      color: #f5f5f7;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 15px;
+      color: #86868b;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+      padding: 32px 28px;
+    }
+
+    .mount-group {
+      margin-bottom: 20px;
+    }
+
+    .mount-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #86868b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .mount-group select {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      color: #1d1d1f;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2386868b' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .mount-group select:focus {
+      outline: none;
+      border-color: rgba(0, 122, 255, 0.4);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    }
+
+    .mount-group select:hover {
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    /* Status indicator */
+    .status-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 28px 0;
+    }
+
+    .status-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(200, 200, 205, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: all 0.5s ease;
+      margin-bottom: 12px;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .status-circle::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 50%);
+      pointer-events: none;
+      transition: all 0.5s ease;
+    }
+
+    .status-circle::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+      transition: all 0.5s ease;
+    }
+
+    .status-circle.compatible {
+      background: rgba(48, 209, 88, 0.55);
+      border: 1.5px solid rgba(130, 255, 170, 0.6);
+      box-shadow:
+        0 0 32px rgba(48, 209, 88, 0.35),
+        0 2px 12px rgba(48, 209, 88, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .status-circle.incompatible {
+      background: rgba(255, 59, 48, 0.55);
+      border: 1.5px solid rgba(255, 150, 140, 0.6);
+      box-shadow:
+        0 0 32px rgba(255, 59, 48, 0.35),
+        0 2px 12px rgba(255, 59, 48, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.35);
+    }
+
+    .status-circle.edge-case {
+      background: rgba(255, 214, 10, 0.55);
+      border: 1.5px solid rgba(255, 240, 120, 0.65);
+      box-shadow:
+        0 0 32px rgba(255, 214, 10, 0.35),
+        0 2px 12px rgba(255, 214, 10, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.45);
+    }
+
+    .status-circle.same-mount {
+      background: rgba(0, 122, 255, 0.55);
+      border: 1.5px solid rgba(120, 190, 255, 0.6);
+      box-shadow:
+        0 0 32px rgba(0, 122, 255, 0.35),
+        0 2px 12px rgba(0, 122, 255, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .status-label {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1d1d1f;
+      text-align: center;
+    }
+
+    /* Details */
+    .details {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      display: none;
+    }
+
+    .details.visible {
+      display: block;
+    }
+
+    .details p {
+      font-size: 14px;
+      color: #3a3a3c;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .details p:last-child {
+      margin-bottom: 0;
+    }
+
+    .details .detail-label {
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    /* Amazon button */
+    .amazon-btn {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #007aff, #0055d4);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .amazon-btn.visible {
+      display: block;
+    }
+
+    .amazon-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.01);
+    }
+
+    .amazon-btn:active {
+      transform: scale(0.99);
+    }
+
+    /* Swap button */
+    .swap-btn {
+      display: none;
+      margin: 0 auto;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #86868b;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .swap-btn.visible {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .swap-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+      color: #1d1d1f;
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .swap-icon {
+      font-size: 16px;
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+
+    .swap-btn:hover .swap-icon {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lens Compatibility Checker</h1>
+    <p class="subtitle">Check if your lens mount adapts to your camera</p>
+
+    <div class="card">
+      <div class="mount-group">
+        <label>Lens Mount</label>
+        <select id="lensMount">
+          <option value="">Select mount...</option>
+          <option value="ef">Canon EF</option>
+          <option value="rf">Canon RF</option>
+          <option value="e">Sony E</option>
+          <option value="f">Nikon F</option>
+          <option value="z">Nikon Z</option>
+          <option value="mft">Micro Four Thirds</option>
+          <option value="l">L-Mount</option>
+          <option value="x">Fuji X</option>
+          <option value="pl">PL (Cinema)</option>
+        </select>
+      </div>
+
+      <div class="status-section">
+        <div class="status-circle" id="statusCircle"></div>
+        <div class="status-label" id="statusLabel">Select both mounts to check</div>
+      </div>
+
+      <div class="mount-group">
+        <label>Camera Mount</label>
+        <select id="cameraMount">
+          <option value="">Select mount...</option>
+          <option value="ef">Canon EF</option>
+          <option value="rf">Canon RF</option>
+          <option value="e">Sony E</option>
+          <option value="f">Nikon F</option>
+          <option value="z">Nikon Z</option>
+          <option value="mft">Micro Four Thirds</option>
+          <option value="l">L-Mount</option>
+          <option value="x">Fuji X</option>
+          <option value="pl">PL (Cinema)</option>
+        </select>
+      </div>
+
+      <button class="swap-btn" id="swapBtn" onclick="swapMounts()">
+        <span class="swap-icon">&#8645;</span> Swap
+      </button>
+
+      <div class="details" id="details"></div>
+
+      <a class="amazon-btn" id="amazonBtn" target="_blank" rel="noopener noreferrer">
+        Find Adapter on Amazon
+      </a>
+    </div>
+
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <div class="toggle-knob" id="toggleKnob">&#9790;</div>
+    </button>
+  </div>
+
+  <script>
+    // Compatibility database
+    // status: "compatible" | "incompatible" | "edge-case"
+    const compatibilityDB = {
+      // Canon EF lens to...
+      "ef->rf":  { status: "compatible", adapters: true, notes: "Canon's own EF-EOS R adapter works perfectly. Full electronic communication, autofocus, and IS retained.", search: "Canon EF to RF mount adapter" },
+      "ef->e":   { status: "compatible", adapters: true, notes: "Many adapters available (Sigma MC-11, Metabones). AF supported on most, but speed may vary. Full manual lens support.", search: "Canon EF to Sony E mount adapter" },
+      "ef->z":   { status: "compatible", adapters: true, notes: "Adapters available from Fringer and others. AF generally works but may be slower than native. Manual lenses adapt easily.", search: "Canon EF to Nikon Z mount adapter" },
+      "ef->mft": { status: "compatible", adapters: true, notes: "Metabones Speed Booster and Viltrox options available. AF supported but slower. 2x crop factor applies (1.4x with Speed Booster).", search: "Canon EF to Micro Four Thirds adapter" },
+      "ef->l":   { status: "compatible", adapters: true, notes: "Sigma MC-21 adapter works well. AF supported for most EF lenses. Manual lenses adapt easily.", search: "Canon EF to L-Mount adapter" },
+      "ef->x":   { status: "compatible", adapters: true, notes: "Fringer EF-FX Pro offers good AF support. Manual-only adapters also widely available.", search: "Canon EF to Fuji X mount adapter" },
+      "ef->f":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon F has a longer flange distance (46.5mm) than Canon EF (44mm), making infinity focus impossible without corrective optics that degrade image quality." },
+      "ef->pl":  { status: "edge-case", adapters: true, notes: "Technically possible with adapters, but uncommon. PL mount has a longer flange distance (52mm). Adapters exist but are rarely used in professional cinema workflows.", search: "Canon EF to PL mount adapter" },
+
+      // Canon RF lens to...
+      "rf->ef":  { status: "incompatible", adapters: false, notes: "Cannot adapt. RF lenses require the shorter RF flange distance (20mm) which EF bodies (44mm) cannot provide." },
+      "rf->e":   { status: "incompatible", adapters: false, notes: "Cannot adapt. RF is Canon's proprietary mirrorless mount with electronic protocols that third-party adapters cannot replicate." },
+      "rf->z":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Canon RF uses proprietary electronic communication not available to third-party adapter makers." },
+      "rf->mft": { status: "incompatible", adapters: false, notes: "Cannot adapt. Canon RF electronic protocols are proprietary and not reverse-engineered for adapters." },
+      "rf->l":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Canon RF mount uses proprietary electronics not supported by third-party adapters." },
+      "rf->x":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Canon RF lens communication is proprietary." },
+      "rf->f":   { status: "incompatible", adapters: false, notes: "Cannot adapt. RF lenses require the shorter 20mm flange distance." },
+      "rf->pl":  { status: "incompatible", adapters: false, notes: "Cannot adapt. Canon RF uses proprietary electronic communication." },
+
+      // Sony E lens to...
+      "e->ef":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E mount has a very short flange distance (18mm) — E-mount lenses cannot project an image correctly on EF bodies (44mm)." },
+      "e->rf":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E lenses are designed for the 18mm flange distance and cannot cover the RF mount." },
+      "e->z":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E mount lenses are designed for a shorter flange distance than Nikon Z." },
+      "e->f":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon F's 46.5mm flange distance is far too long for Sony E lenses (18mm)." },
+      "e->mft":  { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E lenses require their native short flange distance (18mm). MFT is close (19.25mm) but not compatible." },
+      "e->l":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E lenses need the 18mm flange distance; L-Mount is 20mm." },
+      "e->x":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Sony E lenses are designed for 18mm flange distance; Fuji X is 17.7mm but uses a different mount." },
+      "e->pl":   { status: "incompatible", adapters: false, notes: "Cannot adapt. PL mount flange distance (52mm) is far too long for Sony E lenses." },
+
+      // Nikon F lens to...
+      "f->ef":   { status: "compatible", adapters: true, notes: "Simple mechanical adapters work well. No electronic communication — fully manual operation. Infinity focus maintained.", search: "Nikon F to Canon EF mount adapter" },
+      "f->rf":   { status: "compatible", adapters: true, notes: "Adapters available. Manual operation only (no AF or aperture control). Infinity focus maintained due to flange distance difference.", search: "Nikon F to Canon RF mount adapter" },
+      "f->e":    { status: "compatible", adapters: true, notes: "Many adapters available. Manual operation. The large flange distance difference makes this an easy adaptation with infinity focus.", search: "Nikon F to Sony E mount adapter" },
+      "f->z":    { status: "compatible", adapters: true, notes: "Nikon's own FTZ adapter provides full AF and electronic support for most F-mount lenses. The best adaptation path for Nikon shooters.", search: "Nikon FTZ adapter" },
+      "f->mft":  { status: "compatible", adapters: true, notes: "Easy adaptation with many adapters. Manual only. 2x crop factor applies. Speed Boosters available from Metabones.", search: "Nikon F to Micro Four Thirds adapter" },
+      "f->l":    { status: "compatible", adapters: true, notes: "Adapters available for manual operation. Infinity focus maintained.", search: "Nikon F to L-Mount adapter" },
+      "f->x":    { status: "compatible", adapters: true, notes: "Simple adapters work well. Manual operation only. Infinity focus maintained.", search: "Nikon F to Fuji X mount adapter" },
+      "f->pl":   { status: "edge-case", adapters: true, notes: "Possible with adapters but uncommon. PL has a longer flange distance (52mm vs 46.5mm). Rarely used in professional settings.", search: "Nikon F to PL mount adapter" },
+
+      // Nikon Z lens to...
+      "z->ef":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z lenses require the short 16mm flange distance that EF bodies cannot provide." },
+      "z->rf":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z lenses need the 16mm flange distance." },
+      "z->e":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z uses proprietary electronic communication." },
+      "z->f":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Z lenses require the shorter 16mm flange distance; F-mount is 46.5mm." },
+      "z->mft":  { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z lenses need the 16mm flange distance." },
+      "z->l":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z mount is proprietary." },
+      "z->x":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z mount is proprietary." },
+      "z->pl":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon Z lenses require their native short flange distance." },
+
+      // Micro Four Thirds lens to...
+      "mft->ef": { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT lenses have a 19.25mm flange distance and small image circle — incompatible with EF's 44mm flange distance." },
+      "mft->rf": { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT lenses have a small image circle designed for the MFT sensor size." },
+      "mft->e":  { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT's image circle is too small for Sony's full-frame or APS-C sensors." },
+      "mft->f":  { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT lenses cannot cover the Nikon F sensor area." },
+      "mft->z":  { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT image circle is too small for Nikon Z cameras." },
+      "mft->l":  { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT lenses have a smaller image circle than L-Mount cameras require." },
+      "mft->x":  { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT image circle is too small for Fuji X APS-C sensors." },
+      "mft->pl": { status: "incompatible", adapters: false, notes: "Cannot adapt. MFT lenses are designed for much smaller sensors than PL cameras use." },
+
+      // L-Mount lens to...
+      "l->ef":   { status: "incompatible", adapters: false, notes: "Cannot adapt. L-Mount lenses (20mm flange distance) cannot achieve infinity focus on EF bodies (44mm)." },
+      "l->rf":   { status: "incompatible", adapters: false, notes: "Cannot adapt. L-Mount lenses need their native 20mm flange distance." },
+      "l->e":    { status: "edge-case", adapters: true, notes: "Technically possible with thin adapters since L-Mount (20mm) is close to Sony E (18mm). Limited options available, manual only.", search: "L-Mount to Sony E adapter" },
+      "l->f":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon F flange distance (46.5mm) is too long for L-Mount lenses." },
+      "l->z":    { status: "incompatible", adapters: false, notes: "Cannot adapt. L-Mount lenses designed for 20mm flange distance." },
+      "l->mft":  { status: "incompatible", adapters: false, notes: "Cannot adapt. While MFT has a similar flange distance, the image circle and mount diameter differ." },
+      "l->x":    { status: "incompatible", adapters: false, notes: "Cannot adapt. L-Mount lenses cannot be reliably adapted to Fuji X." },
+      "l->pl":   { status: "incompatible", adapters: false, notes: "Cannot adapt. PL mount (52mm) has a much longer flange distance than L-Mount (20mm)." },
+
+      // Fuji X lens to...
+      "x->ef":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X lenses (17.7mm flange distance) cannot work on EF bodies (44mm)." },
+      "x->rf":   { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X lenses require their native short flange distance." },
+      "x->e":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X uses proprietary electronic communication." },
+      "x->f":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Nikon F's flange distance is far too long." },
+      "x->z":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X is proprietary." },
+      "x->mft":  { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X lenses project an APS-C image circle but use proprietary communication." },
+      "x->l":    { status: "incompatible", adapters: false, notes: "Cannot adapt. Fuji X lenses are proprietary." },
+      "x->pl":   { status: "incompatible", adapters: false, notes: "Cannot adapt. PL flange distance (52mm) is far too long for Fuji X lenses." },
+
+      // PL lens to...
+      "pl->ef":  { status: "compatible", adapters: true, notes: "Common in cinema. Simple mechanical adapters maintain infinity focus. Manual operation only (PL lenses are manual by design).", search: "PL to Canon EF mount adapter" },
+      "pl->rf":  { status: "compatible", adapters: true, notes: "Adapters available. PL's long flange distance (52mm) adapts easily to RF (20mm). Manual operation.", search: "PL to Canon RF mount adapter" },
+      "pl->e":   { status: "compatible", adapters: true, notes: "Very common in cinema. Many high-quality adapters available. Manual operation. Widely used on Sony cinema cameras.", search: "PL to Sony E mount adapter" },
+      "pl->f":   { status: "compatible", adapters: true, notes: "Adapters available. PL (52mm) to Nikon F (46.5mm) works with proper adapters. Manual operation.", search: "PL to Nikon F mount adapter" },
+      "pl->z":   { status: "compatible", adapters: true, notes: "Adapters available. PL lenses adapt easily to Nikon Z due to the large flange distance difference. Manual operation.", search: "PL to Nikon Z mount adapter" },
+      "pl->mft": { status: "compatible", adapters: true, notes: "Common in cinema. PL adapts well to MFT. Note the 2x crop factor. Manual operation.", search: "PL to Micro Four Thirds adapter" },
+      "pl->l":   { status: "compatible", adapters: true, notes: "Adapters available. PL's long flange distance makes adaptation straightforward. Manual operation.", search: "PL to L-Mount adapter" },
+      "pl->x":   { status: "compatible", adapters: true, notes: "Adapters available. PL adapts to Fuji X with proper adapter. Manual operation. APS-C crop applies.", search: "PL to Fuji X mount adapter" },
+    };
+
+    const mountNames = {
+      ef: "Canon EF",
+      rf: "Canon RF",
+      e: "Sony E",
+      f: "Nikon F",
+      z: "Nikon Z",
+      mft: "Micro Four Thirds",
+      l: "L-Mount",
+      x: "Fuji X",
+      pl: "PL (Cinema)"
+    };
+
+    const lensSelect = document.getElementById("lensMount");
+    const cameraSelect = document.getElementById("cameraMount");
+    const statusCircle = document.getElementById("statusCircle");
+    const statusLabel = document.getElementById("statusLabel");
+    const detailsDiv = document.getElementById("details");
+    const amazonBtn = document.getElementById("amazonBtn");
+    const swapBtn = document.getElementById("swapBtn");
+
+    function checkCompatibility() {
+      const lens = lensSelect.value;
+      const camera = cameraSelect.value;
+
+      // Show/hide swap button
+      if (lens || camera) {
+        swapBtn.classList.add("visible");
+      } else {
+        swapBtn.classList.remove("visible");
+      }
+
+      // Reset if not both selected
+      if (!lens || !camera) {
+        statusCircle.className = "status-circle";
+        statusLabel.textContent = "Select both mounts to check";
+        detailsDiv.classList.remove("visible");
+        detailsDiv.innerHTML = "";
+        amazonBtn.classList.remove("visible");
+        return;
+      }
+
+      // Same mount
+      if (lens === camera) {
+        statusCircle.className = "status-circle same-mount";
+        statusLabel.textContent = "Same Mount — Native Fit";
+        detailsDiv.classList.add("visible");
+        detailsDiv.innerHTML = `<p>No adapter needed. ${mountNames[lens]} lenses mount natively on ${mountNames[camera]} cameras.</p>`;
+        amazonBtn.classList.remove("visible");
+        return;
+      }
+
+      const key = `${lens}->${camera}`;
+      const result = compatibilityDB[key];
+
+      if (!result) {
+        statusCircle.className = "status-circle";
+        statusLabel.textContent = "Combination not in database";
+        detailsDiv.classList.add("visible");
+        detailsDiv.innerHTML = "<p>This combination hasn't been added yet. Check back soon!</p>";
+        amazonBtn.classList.remove("visible");
+        return;
+      }
+
+      // Set status circle
+      statusCircle.className = `status-circle ${result.status}`;
+
+      // Set label
+      if (result.status === "compatible") {
+        statusLabel.textContent = "Compatible";
+      } else if (result.status === "incompatible") {
+        statusLabel.textContent = "Not Compatible";
+      } else if (result.status === "edge-case") {
+        statusLabel.textContent = "Edge Case";
+      }
+
+      // Set details
+      detailsDiv.classList.add("visible");
+      let html = `<p>${result.notes}</p>`;
+      if (result.adapters) {
+        html += `<p><span class="detail-label">Adapters available:</span> Yes</p>`;
+      } else {
+        html += `<p><span class="detail-label">Adapters available:</span> No</p>`;
+      }
+      detailsDiv.innerHTML = html;
+
+      // Amazon button
+      if (result.adapters && result.search) {
+        const searchQuery = encodeURIComponent(result.search);
+        amazonBtn.href = `https://www.amazon.com/s?k=${searchQuery}`;
+        amazonBtn.classList.add("visible");
+      } else {
+        amazonBtn.classList.remove("visible");
+      }
+    }
+
+    function swapMounts() {
+      const temp = lensSelect.value;
+      lensSelect.value = cameraSelect.value;
+      cameraSelect.value = temp;
+      checkCompatibility();
+    }
+
+    lensSelect.addEventListener("change", checkCompatibility);
+    cameraSelect.addEventListener("change", checkCompatibility);
+
+    // Dark mode toggle
+    const themeToggle = document.getElementById("themeToggle");
+    const toggleKnob = document.getElementById("toggleKnob");
+
+    function setTheme(dark) {
+      if (dark) {
+        document.body.classList.add("dark");
+        toggleKnob.innerHTML = "&#9728;";
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark");
+        toggleKnob.innerHTML = "&#9790;";
+        localStorage.setItem("theme", "light");
+      }
+    }
+
+    themeToggle.addEventListener("click", () => {
+      setTheme(!document.body.classList.contains("dark"));
+    });
+
+    // Respect saved preference or system preference
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      setTheme(true);
+    }
+  </script>
+</body>
+</html>
