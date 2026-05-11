@@ -306,20 +306,32 @@
       margin-bottom: 16px;
     }
 
-    @media (max-width: 480px) {
-      .selector-row {
-        flex-direction: column;
-        gap: 0;
+    @media (max-width: 540px) {
+      .card {
+        padding: 20px 16px;
       }
 
-      .selector-row .mount-group {
-        width: 100%;
-        margin-bottom: 20px;
+      .selector-row {
+        gap: 8px;
       }
 
       .status-section {
-        width: 100%;
-        margin: 8px 0;
+        width: 52px;
+      }
+
+      .status-circle {
+        width: 44px;
+        height: 44px;
+      }
+
+      .mount-group label {
+        font-size: 11px;
+      }
+
+      .mount-group select {
+        padding: 10px 10px;
+        font-size: 14px;
+        background-position: right 10px center;
       }
     }
 
