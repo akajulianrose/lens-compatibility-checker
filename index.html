@@ -133,7 +133,7 @@
 
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 680px;
     }
 
     h1 {
@@ -205,12 +205,26 @@
       border-color: rgba(0, 0, 0, 0.15);
     }
 
+    /* Horizontal selector row */
+    .selector-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .selector-row .mount-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
     /* Status indicator */
     .status-section {
+      flex-shrink: 0;
+      width: 72px;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      margin: 28px 0;
     }
 
     .status-circle {
@@ -221,7 +235,6 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       transition: all 0.5s ease;
-      margin-bottom: 12px;
       position: relative;
       border: 1px solid rgba(255, 255, 255, 0.35);
       box-shadow:
@@ -286,10 +299,28 @@
     }
 
     .status-label {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 600;
       color: #1d1d1f;
       text-align: center;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .selector-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .selector-row .mount-group {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .status-section {
+        width: 100%;
+        margin: 8px 0;
+      }
     }
 
     /* Details */
@@ -400,42 +431,45 @@
     <p class="subtitle">Check if your lens mount adapts to your camera</p>
 
     <div class="card">
-      <div class="mount-group">
-        <label>Lens Mount</label>
-        <select id="lensMount">
-          <option value="">Select mount...</option>
-          <option value="ef">Canon EF</option>
-          <option value="rf">Canon RF</option>
-          <option value="e">Sony E</option>
-          <option value="f">Nikon F</option>
-          <option value="z">Nikon Z</option>
-          <option value="mft">Micro Four Thirds</option>
-          <option value="l">L-Mount</option>
-          <option value="x">Fuji X</option>
-          <option value="pl">PL (Cinema)</option>
-        </select>
+      <div class="selector-row">
+        <div class="mount-group">
+          <label>Lens Mount</label>
+          <select id="lensMount">
+            <option value="">Select mount...</option>
+            <option value="ef">Canon EF</option>
+            <option value="rf">Canon RF</option>
+            <option value="e">Sony E</option>
+            <option value="f">Nikon F</option>
+            <option value="z">Nikon Z</option>
+            <option value="mft">Micro Four Thirds</option>
+            <option value="l">L-Mount</option>
+            <option value="x">Fuji X</option>
+            <option value="pl">PL (Cinema)</option>
+          </select>
+        </div>
+
+        <div class="status-section">
+          <div class="status-circle" id="statusCircle"></div>
+        </div>
+
+        <div class="mount-group">
+          <label>Camera Mount</label>
+          <select id="cameraMount">
+            <option value="">Select mount...</option>
+            <option value="ef">Canon EF</option>
+            <option value="rf">Canon RF</option>
+            <option value="e">Sony E</option>
+            <option value="f">Nikon F</option>
+            <option value="z">Nikon Z</option>
+            <option value="mft">Micro Four Thirds</option>
+            <option value="l">L-Mount</option>
+            <option value="x">Fuji X</option>
+            <option value="pl">PL (Cinema)</option>
+          </select>
+        </div>
       </div>
 
-      <div class="status-section">
-        <div class="status-circle" id="statusCircle"></div>
-        <div class="status-label" id="statusLabel">Select both mounts to check</div>
-      </div>
-
-      <div class="mount-group">
-        <label>Camera Mount</label>
-        <select id="cameraMount">
-          <option value="">Select mount...</option>
-          <option value="ef">Canon EF</option>
-          <option value="rf">Canon RF</option>
-          <option value="e">Sony E</option>
-          <option value="f">Nikon F</option>
-          <option value="z">Nikon Z</option>
-          <option value="mft">Micro Four Thirds</option>
-          <option value="l">L-Mount</option>
-          <option value="x">Fuji X</option>
-          <option value="pl">PL (Cinema)</option>
-        </select>
-      </div>
+      <div class="status-label" id="statusLabel">Select both mounts to check</div>
 
       <button class="swap-btn" id="swapBtn" onclick="swapMounts()">
         <span class="swap-icon">&#8645;</span> Swap
